@@ -21,6 +21,20 @@ client.on('ready', async () => {
 
     const commands = await getApp(guildId).commands.get()
 
+    client.api.applications(client.user.id).commands.post({
+        data: {
+            name: 'chess',
+            description: 'Pelaa shakkia äänikanavalla!',
+            options: [
+                {
+                name: "channel",
+                type: 7,
+                description: "Äänikanava",
+                required: true,
+                },
+            ],
+    }})
+
     /*client.api.applications(client.user.id).commands.post({
         data: {
             name: 'ping',
@@ -69,6 +83,8 @@ client.on('ready', async () => {
                 },
             ],
     }})
+
+    
 
     client.api.applications(client.user.id).commands.post({
         data: {
@@ -186,6 +202,40 @@ client.on('ready', async () => {
                     type: 4,
                     data: {
                     content: `[Klikkaa Tästä](<${invite.url}>) pelataksesi Betrayal.io:ta kanavalla ${channel.name}.`
+                    }
+                }})
+            })
+        }
+
+        if (command === 'chess') {
+            // check that channel is a voice channel
+            if (!channel || channel.type != "voice") {
+                client.api.interactions(interaction.id, interaction.token).callback.post({data: {
+                    type: 4,
+                    data: {
+                    content: `Kanava jonka valitsit ei ole äänikanava. Valitse äänikanava`
+                    }
+                }})
+            }
+
+            // create invite
+            client.api
+            .channels(channel.id)
+            .invites.post({
+                data: {
+                    "max_age": 604800,
+                    "max_uses": 0,
+                    "target_application_id": "832012586023256104",
+                    "target_type": 2,
+                    "temporary": false,
+                }
+            })
+            .then(invite => new DiscordJS.Invite(client, invite))
+            .then((invite) => {
+                client.api.interactions(interaction.id, interaction.token).callback.post({data: {
+                    type: 4,
+                    data: {
+                    content: `[Klikkaa Tästä](<${invite.url}>) pelataksesi shakkia kanavalla ${channel.name}.`
                     }
                 }})
             })
